@@ -1,0 +1,243 @@
+.volunteers-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.particle-network-volunteers {
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  pointer-events: none;
+}
+
+body.dark .particle-network-volunteers {
+  opacity: 0.8;
+}
+
+body:not(.dark) .particle-network-volunteers {
+  opacity: 0.25;
+}
+
+/* Header Section */
+.volunteers-header {
+  text-align: center;
+  margin-bottom: 60px;
+  z-index: 1;
+}
+
+.header-icon {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(168, 85, 247, 0.2));
+  border: 2px solid rgba(14, 165, 233, 0.3);
+  margin-bottom: 20px;
+  color: #0ea5e9;
+  filter: drop-shadow(0 0 16px rgba(14, 165, 233, 0.4));
+}
+
+body.dark .header-icon {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(168, 85, 247, 0.15));
+  border-color: rgba(14, 165, 233, 0.4);
+}
+
+.volunteers-header h1 {
+  font-size: 48px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #0ea5e9, #a855f7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.volunteers-header p {
+  font-size: 18px;
+  opacity: 0.7;
+}
+
+/* Content */
+.volunteers-content {
+  width: 100%;
+  max-width: 1000px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  z-index: 2;
+}
+
+/* Stats */
+.volunteer-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.stat-card {
+  padding: 28px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(14, 165, 233, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+body.dark .stat-card {
+  background: rgba(30, 41, 59, 0.4);
+  border-color: rgba(14, 165, 233, 0.25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.stat-card h4 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #0ea5e9;
+  margin-bottom: 8px;
+}
+
+.stat-card p {
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+/* Skills Section */
+.skills-section {
+  padding: 32px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(14, 165, 233, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+body.dark .skills-section {
+  background: rgba(30, 41, 59, 0.4);
+  border-color: rgba(14, 165, 233, 0.25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.skills-section h3 {
+  margin-bottom: 20px;
+}
+
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.skill-badge {
+  padding: 12px 16px;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(168, 85, 247, 0.1));
+  border: 1px solid rgba(14, 165, 233, 0.3);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.skill-badge:hover {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(168, 85, 247, 0.2));
+  border-color: rgba(14, 165, 233, 0.5);
+}
+
+.skill-badge svg {
+  color: #0ea5e9;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* Recruitment Card */
+.recruitment-card {
+  padding: 32px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(14, 165, 233, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+body.dark .recruitment-card {
+  background: rgba(30, 41, 59, 0.4);
+  border-color: rgba(14, 165, 233, 0.25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.recruitment-card h3 {
+  margin-bottom: 20px;
+}
+
+.recruitment-info {
+  margin-bottom: 20px;
+}
+
+.recruitment-info p {
+  margin-bottom: 12px;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(14, 165, 233, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #0ea5e9, #a855f7);
+  border-radius: 4px;
+}
+
+.recruit-button {
+  width: 100%;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #0ea5e9, #0d9ce6);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 16px;
+}
+
+.recruit-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 20px rgba(14, 165, 233, 0.5);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .volunteers-header h1 {
+    font-size: 36px;
+  }
+
+  .volunteer-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .skills-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
+}

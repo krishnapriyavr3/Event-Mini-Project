@@ -1,0 +1,38 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  transition: background 0.4s, color 0.4s;
+}
+
+body {
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* LIGHT THEME */
+body.light {
+  background: linear-gradient(
+    135deg,
+    #f8fafc 0%,
+    #e0f2fe 40%,
+    #ede9fe 75%,
+    #fdf2f8 100%
+  );
+  color: #1e293b;
+}
+
+/* DARK THEME */
+body.dark {
+  background: #0f172a;
+  color: white;
+}
+
+/* THEME TOGGLE */
+.theme-toggle {
+  position: fixed;
+  top: 20px;
+  right: 30px;
+  font-size: 22px;
+  cursor: pointer;
+  z-index: 1000;
+}

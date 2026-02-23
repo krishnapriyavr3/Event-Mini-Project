@@ -1,0 +1,84 @@
+.resources-page {
+  min-height: 100vh;
+  padding: 80px 20px;
+  position: relative;
+  overflow-y: auto;
+  background: transparent;
+}
+
+.particle-network-resources {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.resources-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.header-icon {
+  color: #0ea5e9;
+  margin-bottom: 15px;
+}
+
+.resources-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 25px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.resource-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(14, 165, 233, 0.2);
+  border-radius: 20px;
+  padding: 30px;
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+body:not(.dark) .resource-card {
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  color: #1e293b;
+}
+
+.resource-card:hover {
+  transform: translateY(-5px);
+  border-color: #0ea5e9;
+}
+
+.resource-icon {
+  margin-bottom: 15px;
+  color: #0ea5e9;
+  display: flex;
+  justify-content: center;
+}
+
+.resource-count {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #0ea5e9;
+  margin: 10px 0;
+}
+
+.resource-button {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  background: #0ea5e9;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.resource-button:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
