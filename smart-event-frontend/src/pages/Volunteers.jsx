@@ -3,12 +3,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Users, Zap, ClipboardList, UserPlus, Heart, Shield, Trophy, Handshake } from "lucide-react";
 import { apiService } from "../apiService";
 import { EventContext } from "../context/EventContext";
+import { useToast } from "../context/ToastContext";
 import "./volunteers.css";
 
 export default function Volunteers() {
   const { event } = useContext(EventContext);
+  const { showToast } = useToast();
   const [volunteers, setVolunteers] = useState([]);
   const [assignments, setAssignments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   
   const [selectedVol, setSelectedVol] = useState("");
   const [task, setTask] = useState("");
@@ -24,6 +28,8 @@ export default function Volunteers() {
 
   useEffect(() => {
     const loadData = async () => {
+      setLoading(true);
+      setError("");
       try {
         const volData = await apiService.getVolunteers();
         setVolunteers(volData);
@@ -33,28 +39,21 @@ export default function Volunteers() {
         }
       } catch (error) {
         console.error("Error loading data:", error);
+        setError("Unable to load volunteers right now.");
+        showToast("Failed to load volunteer data", "error");
+      } finally {
+        setLoading(false);
       }
     };
     loadData();
-  }, [event]);
+  }, [event, showToast]);
 
   const handleAssign = async (e) => {
     e.preventDefault();
-    
-    // Detailed Debugging: Check exactly what is missing in your console
-    console.log("Validation Check:", { 
-      volunteer: selectedVol, 
-      taskDesc: task, 
-      fullEvent: event,
-      eventId: event?.event_id 
-    });
 
-    // Enhanced validation message to tell you exactly what is missing
     if (!selectedVol || !task || !event?.event_id) {
-      return alert(`Validation Error:
-        - Volunteer selected: ${selectedVol ? '✅' : '❌'}
-        - Task entered: ${task ? '✅' : '❌'}
-        - Event ID found: ${event?.event_id ? '✅' : '❌'}`);
+      showToast("Select volunteer, task, and active event", "error");
+      return;
     }
 
     try {
@@ -68,10 +67,10 @@ export default function Volunteers() {
       setAssignments(updated);
       setTask("");
       setSelectedVol("");
-      alert("Volunteer assigned successfully!");
+      showToast("Volunteer assigned successfully", "success");
     } catch (err) {
       console.error("Assignment error:", err);
-      alert("Assignment failed. Check your network or backend console.");
+      showToast("Assignment failed. Please try again.", "error");
     }
   };
 
@@ -126,6 +125,8 @@ export default function Volunteers() {
       <div className="volunteers-content">
         <div className="skills-section">
           <h3>Active Skill Categories</h3>
+          {loading && <p className="inline-status">Loading volunteers...</p>}
+          {error && <p className="inline-status error">{error}</p>}
           <div className="skills-grid">
             {[...new Set(volunteers.map(v => v.skills))].map((skill, idx) => {
               const Icon = iconMap[skill] || Zap;

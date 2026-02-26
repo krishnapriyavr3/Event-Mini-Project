@@ -12,7 +12,10 @@ import {
   Calendar,
   Flame,
   Target,
+  Activity,
+  PlayCircle,
 } from "lucide-react";
+import { apiService } from "../apiService";
 import "./home.css";
 
 export default function Home() {
@@ -68,6 +71,7 @@ export default function Home() {
   ];
 
   const [insight, setInsight] = useState(insights[0]);
+  const [modelHealth, setModelHealth] = useState({ totalEvents: 0, totalFeedback: 0, status: "loading" });
 
   useEffect(() => {
     let i = 0;
@@ -76,6 +80,19 @@ export default function Home() {
       setInsight(insights[i]);
     }, 3000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const loadModelHealth = async () => {
+      try {
+        const data = await apiService.getModelHealth();
+        setModelHealth(data);
+      } catch (error) {
+        setModelHealth({ totalEvents: 0, totalFeedback: 0, status: "offline" });
+      }
+    };
+
+    loadModelHealth();
   }, []);
 
   /* ================= CARD 3D EFFECT ================= */
@@ -267,6 +284,15 @@ export default function Home() {
           <h2>{count.completed}</h2>
           <span>Completed</span>
         </motion.div>
+
+        <motion.div className="dash-card model-health" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
+          <motion.div className="card-icon" animate={{ y: [0, -5, 0] }} transition={{ duration: 3.8, repeat: Infinity, ease: "easeInOut", delay: 1.1 }}>
+            <Activity size={32} />
+          </motion.div>
+          <h2>{modelHealth.status}</h2>
+          <span>Model Health</span>
+          <p className="mini-meta">Events: {modelHealth.totalEvents} • Feedback: {modelHealth.totalFeedback}</p>
+        </motion.div>
       </section>
 
       <section className="features">
@@ -324,6 +350,14 @@ export default function Home() {
           </motion.div>
           <h3>Past Participants</h3>
           <p>Track returning attendees.</p>
+        </Link>
+
+        <Link to="/demo-checklist" className="card">
+          <motion.div className="feature-icon" animate={{ y: [0, -6, 0] }} transition={{ duration: 4.1, repeat: Infinity, ease: "easeInOut", delay: 1.4 }} whileHover={{ scale: 1.2, filter: "drop-shadow(0 0 20px rgba(14,165,233,0.9))" }}>
+            <PlayCircle size={40} />
+          </motion.div>
+          <h3>Demo Checklist</h3>
+          <p>Step-by-step viva flow and quick commands.</p>
         </Link>
       </section>
 

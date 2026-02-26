@@ -6,28 +6,67 @@ import { apiService } from "../apiService"; // Ensure this import is here
 import "./attendance.css";
 
 export default function Attendance() {
-  const { event } = useContext(EventContext);
+  const { event, setEvent } = useContext(EventContext);
   const [loading, setLoading] = useState(false);
   const [prediction, setPrediction] = useState(null);
+  const [predictionMeta, setPredictionMeta] = useState(null);
+
+  const getConfidenceLevel = (confidence) => {
+    if (typeof confidence !== "number") return "Unknown";
+    if (confidence >= 80) return "High";
+    if (confidence >= 60) return "Medium";
+    return "Low";
+  };
 
   // 1. Fully Functional Predict Logic
   const predict = async () => {
     if (!event) return;
     setLoading(true);
     try {
-      // Calling the backend using the current event name from context
-      const data = await apiService.getAttendancePrediction(event.name);
+      const data = await apiService.predictEventInsights({
+        name: event.name,
+        type: event.type,
+        description: event.description,
+        budget: event.budget,
+      });
       setPrediction(data.predictedAttendance);
+      setPredictionMeta({
+        confidence: data.confidence,
+        trainedOnEvents: data.model?.trainedOnEvents,
+      });
+      setEvent({
+        ...event,
+        aiInsights: {
+          predictedAttendance: data.predictedAttendance,
+          confidence: data.confidence,
+          trainedOnEvents: data.model?.trainedOnEvents,
+          recommendedVenue: data.recommendedVenue || null,
+        },
+      });
     } catch (error) {
       console.error("AI Prediction Error:", error);
       // Fallback to random if backend fails
       setPrediction(Math.floor(Math.random() * 150) + 50);
+      setPredictionMeta({
+        confidence: null,
+        trainedOnEvents: null,
+      });
     } finally {
       setLoading(false);
     }
   };
 
   /* ================= PARTICLE NETWORK ================= */
+  useEffect(() => {
+    if (event?.aiInsights?.predictedAttendance) {
+      setPrediction(event.aiInsights.predictedAttendance);
+      setPredictionMeta({
+        confidence: event.aiInsights.confidence,
+        trainedOnEvents: event.aiInsights.trainedOnEvents,
+      });
+    }
+  }, [event]);
+
   useEffect(() => {
     const canvas = document.querySelector(".particle-network-attendance");
     if (!canvas) return;
@@ -157,6 +196,13 @@ export default function Attendance() {
               <p className="result-label">Predicted Attendance</p>
               <h2 className="result-value">{prediction}</h2>
               <p className="result-unit">students</p>
+              <div className="result-meta">
+                <span>Confidence: {predictionMeta?.confidence ? `${predictionMeta.confidence}%` : "N/A"}</span>
+                <span>Trained on: {predictionMeta?.trainedOnEvents || "N/A"} events</span>
+                <span className={`confidence-badge ${getConfidenceLevel(predictionMeta?.confidence).toLowerCase()}`}>
+                  {getConfidenceLevel(predictionMeta?.confidence)} Confidence
+                </span>
+              </div>
               <motion.button className="reset-button" onClick={() => setPrediction(null)} whileHover={{ scale: 1.05 }}>
                 Run Again
               </motion.button>
@@ -173,7 +219,11 @@ export default function Attendance() {
             </div>
             <div className="insight-item">
               <span className="insight-dot"></span>
-              <p>Based on volunteer availability and campus trends</p>
+              <p>Model confidence: {predictionMeta?.confidence ? `${predictionMeta.confidence}%` : "Run prediction to view"}</p>
+            </div>
+            <div className="insight-item">
+              <span className="insight-dot"></span>
+              <p>Trained using {predictionMeta?.trainedOnEvents || "historical"} campus event records</p>
             </div>
           </div>
         </motion.div>

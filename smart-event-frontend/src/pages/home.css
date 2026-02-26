@@ -93,6 +93,16 @@ body.dark .dash-card {
   transform: translateY(-6px);
 }
 
+.dash-card.model-health h2 {
+  text-transform: capitalize;
+}
+
+.mini-meta {
+  margin-top: 8px;
+  font-size: 12px;
+  opacity: 0.75;
+}
+
 .card-icon {
   display: flex;
   justify-content: center;

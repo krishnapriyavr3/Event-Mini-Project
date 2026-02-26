@@ -9,6 +9,7 @@ import Resources from "./pages/Resources";
 import Volunteers from "./pages/Volunteers";
 import Feedback from "./pages/Feedback";
 import Participants from "./pages/Participants";
+import DemoChecklist from "./pages/DemoChecklist";
 
 export default function App() {
   const [dark, setDark] = useState(false);
@@ -32,6 +33,7 @@ export default function App() {
         <Route path="/volunteers" element={<Volunteers />} />
         <Route path="/feedback" element={<Feedback />} />
         <Route path="/participants" element={<Participants />} />
+        <Route path="/demo-checklist" element={<DemoChecklist />} />
       </Routes>
     </>
   );

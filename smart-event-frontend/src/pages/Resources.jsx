@@ -2,10 +2,14 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Package, Headphones, Monitor, Cable, Lightbulb, Wifi } from "lucide-react";
 import { apiService } from "../apiService";
+import { useToast } from "../context/ToastContext";
 import "./resources.css";
 
 export default function Resources() {
+  const { showToast } = useToast();
   const [dbResources, setDbResources] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const iconMap = {
     "Projectors": Monitor,
@@ -17,11 +21,17 @@ export default function Resources() {
   };
 
   const loadResources = async () => {
+    setLoading(true);
+    setError("");
     try {
       const data = await apiService.getResources();
       setDbResources(data || []);
     } catch (error) {
       console.error("Error loading resources:", error);
+      setError("Could not load resources right now.");
+      showToast("Failed to load resources", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -33,9 +43,9 @@ export default function Resources() {
     try {
       await apiService.requestResource(resourceId);
       await loadResources();
-      alert("Resource requested successfully!");
+      showToast("Resource requested successfully", "success");
     } catch (error) {
-      alert("Request failed. Ensure the server route /api/resources/request/:id exists.");
+      showToast("Request failed. Please try again.", "error");
     }
   };
 
@@ -92,7 +102,11 @@ export default function Resources() {
       </motion.div>
 
       <div className="resources-grid">
-        {dbResources.length > 0 ? (
+        {loading ? (
+          <div className="no-resources">Loading resources...</div>
+        ) : error ? (
+          <div className="no-resources">{error}</div>
+        ) : dbResources.length > 0 ? (
           dbResources.map((resource, index) => {
             const Icon = iconMap[resource.name] || Package;
             return (

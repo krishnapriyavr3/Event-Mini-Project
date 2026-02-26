@@ -1,11 +1,21 @@
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { EventContext } from "../context/EventContext";
 import { motion } from "framer-motion";
-import { MapPin, Building2, Users, MapIcon, AlertCircle } from "lucide-react";
+import { MapPin, Building2, Users, MapIcon } from "lucide-react";
+import { apiService } from "../apiService";
 import "./venue.css";
 
 export default function Venue() {
-  const { event } = useContext(EventContext);
+  const { event, setEvent } = useContext(EventContext);
+  const [aiRecommendation, setAiRecommendation] = useState(null);
+  const [predictionMeta, setPredictionMeta] = useState(null);
+
+  const getConfidenceLevel = (confidence) => {
+    if (typeof confidence !== "number") return "Unknown";
+    if (confidence >= 80) return "High";
+    if (confidence >= 60) return "Medium";
+    return "Low";
+  };
 
   /* ================= PARTICLE NETWORK ================= */
   useEffect(() => {
@@ -44,6 +54,58 @@ export default function Venue() {
     animate();
   }, []);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const getRecommendation = async () => {
+      if (!event) return;
+
+      if (event.aiInsights?.recommendedVenue) {
+        setAiRecommendation(event.aiInsights.recommendedVenue);
+        setPredictionMeta({
+          confidence: event.aiInsights.confidence,
+          trainedOnEvents: event.aiInsights.trainedOnEvents,
+        });
+        return;
+      }
+
+      try {
+        const data = await apiService.predictEventInsights({
+          name: event.name,
+          type: event.type,
+          description: event.description,
+          budget: event.budget,
+        });
+        if (isMounted) {
+          setAiRecommendation(data.recommendedVenue || null);
+          setPredictionMeta({
+            confidence: data.confidence,
+            trainedOnEvents: data.model?.trainedOnEvents,
+          });
+          setEvent({
+            ...event,
+            aiInsights: {
+              predictedAttendance: data.predictedAttendance,
+              confidence: data.confidence,
+              trainedOnEvents: data.model?.trainedOnEvents,
+              recommendedVenue: data.recommendedVenue || null,
+            },
+          });
+        }
+      } catch (error) {
+        if (isMounted) {
+          setAiRecommendation(null);
+          setPredictionMeta(null);
+        }
+      }
+    };
+
+    getRecommendation();
+    return () => {
+      isMounted = false;
+    };
+  }, [event]);
+
   // 1. Show empty state if no event exists
   if (!event)
     return (
@@ -59,15 +121,19 @@ export default function Venue() {
   // 2. SAFE RECOMMENDATION LOGIC
   const eventType = event?.type?.toLowerCase() || "";
 
-  const venueName =
+  const fallbackVenueName =
     eventType.includes("conference") || eventType.includes("tech")
       ? "Main Auditorium"
       : eventType.includes("cultural")
       ? "Grand Hall"
       : "Seminar Hall B";
 
-  const capacity =
-    venueName === "Main Auditorium" ? 500 : venueName === "Grand Hall" ? 300 : 150;
+  const fallbackCapacity =
+    fallbackVenueName === "Main Auditorium" ? 500 : fallbackVenueName === "Grand Hall" ? 300 : 150;
+
+  const venueName = aiRecommendation?.venue_name || fallbackVenueName;
+  const capacity = aiRecommendation?.capacity || fallbackCapacity;
+  const location = aiRecommendation?.location || "Campus Main Campus";
 
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -113,10 +179,21 @@ export default function Venue() {
               <MapIcon size={20} />
               <div>
                 <span className="label">Location</span>
-                <span className="value">Campus Main Campus</span>
+                <span className="value">{location}</span>
+              </div>
+            </div>
+            <div className="detail-item">
+              <Users size={20} />
+              <div>
+                <span className="label">AI Confidence</span>
+                <span className="value">{predictionMeta?.confidence ? `${predictionMeta.confidence}%` : "N/A"}</span>
               </div>
             </div>
           </div>
+          <p className="venue-meta-text">Model trained on {predictionMeta?.trainedOnEvents || "historical"} events.</p>
+          <span className={`confidence-badge ${getConfidenceLevel(predictionMeta?.confidence).toLowerCase()}`}>
+            {getConfidenceLevel(predictionMeta?.confidence)} Confidence
+          </span>
         </motion.div>
 
         {/* ... (Amenity Card and Recommendation Card remain the same) */}

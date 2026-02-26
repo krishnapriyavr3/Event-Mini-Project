@@ -3,14 +3,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, BarChart3, TrendingUp, Star, ThumbsUp, MessageCircle, Send, CheckCircle } from "lucide-react";
 import { apiService } from "../apiService";
 import { EventContext } from "../context/EventContext";
+import { useToast } from "../context/ToastContext";
 import "./feedback.css";
 
 export default function Feedback() {
   const { event } = useContext(EventContext);
+  const { showToast } = useToast();
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [comments, setComments] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [sentimentResult, setSentimentResult] = useState(null);
+  const [trendData, setTrendData] = useState({ positive: 0, neutral: 0, negative: 0, total: 0, averageRating: 0 });
 
   /* ================= PARTICLE NETWORK ================= */
   useEffect(() => {
@@ -56,22 +60,47 @@ export default function Feedback() {
   e.preventDefault();
   
   if (!rating || !event?.event_id) {
-    return alert("Please select a rating and ensure an event is active.");
+    showToast("Please select a rating and active event", "error");
+    return;
   }
   
   try {
-    await apiService.submitFeedback({
+    const response = await apiService.submitFeedback({
       event_id: event.event_id,
-      student_id: "STU001", // This must exist in the users table
+      student_id: "U001",
       rating: rating,
       comments: comments
     });
+    setSentimentResult(response.sentiment || null);
     setSubmitted(true);
+    showToast("Feedback submitted successfully", "success");
+    if (event?.event_id) {
+      const latestTrend = await apiService.getFeedbackTrends(event.event_id);
+      setTrendData(latestTrend);
+    }
   } catch (err) {
     console.error("Submission failed:", err);
-    alert("Submission failed. Ensure the user STU001 exists in the database.");
+    showToast("Submission failed. Please try again.", "error");
   }
 };
+
+  useEffect(() => {
+    const loadTrendData = async () => {
+      if (!event?.event_id) return;
+      try {
+        const data = await apiService.getFeedbackTrends(event.event_id);
+        setTrendData(data);
+      } catch (error) {
+        setTrendData({ positive: 0, neutral: 0, negative: 0, total: 0, averageRating: 0 });
+      }
+    };
+
+    loadTrendData();
+  }, [event]);
+
+  const sentimentScore = sentimentResult?.score ?? 0;
+  const sentimentLabel = sentimentResult?.label || "Pending";
+  const sentimentClass = sentimentLabel.toLowerCase();
 
   const itemVariants = {
     hidden: { opacity: 0, y: 15 },
@@ -144,31 +173,37 @@ export default function Feedback() {
           <motion.div className="analytics-column">
             <motion.div className="sentiment-card-mini" variants={itemVariants} custom={2}>
               <div className="card-label">
-                <BarChart3 size={18} /> <span>92% Positive Sentiment</span>
+                <BarChart3 size={18} /> <span>{sentimentScore}% {sentimentLabel} Sentiment</span>
               </div>
               <div className="gauge-bg">
                 <motion.div 
                   className="gauge-fill" 
                   initial={{ width: 0 }} 
-                  animate={{ width: "92%" }} 
+                  animate={{ width: `${sentimentScore}%` }} 
                   transition={{ duration: 1.5 }} 
                 />
               </div>
+              <div className={`sentiment-pill ${sentimentClass}`}>{sentimentLabel}</div>
             </motion.div>
 
             <motion.div className="rating-card-mini" variants={itemVariants} custom={3}>
               <Star size={18} className="active" fill="currentColor" />
               <div className="rating-info">
-                <h3>4.7 / 5.0</h3>
-                <p>Average from 234 responses</p>
+                <h3>{Number(trendData.averageRating || 0).toFixed(1)} / 5.0</h3>
+                <p>Average from {trendData.total || 0} responses</p>
               </div>
             </motion.div>
 
             <motion.div className="insights-card-mini" variants={itemVariants} custom={4}>
               <h3>AI Key Insights</h3>
-              <div className="insight-row"><ThumbsUp size={14}/> <p>Great Organization</p></div>
-              <div className="insight-row"><MessageCircle size={14}/> <p>Networking Sessions</p></div>
-              <div className="insight-row"><TrendingUp size={14}/> <p>Growth Trend: +12%</p></div>
+              <div className="insight-row"><ThumbsUp size={14}/> <p>Sentiment: {sentimentLabel}</p></div>
+              <div className="insight-row"><MessageCircle size={14}/> <p>Positive cues: {sentimentResult?.positiveHits?.join(", ") || "N/A"}</p></div>
+              <div className="insight-row"><TrendingUp size={14}/> <p>Negative cues: {sentimentResult?.negativeHits?.join(", ") || "N/A"}</p></div>
+              <div className="trend-bars">
+                <div className="trend-row"><span>Positive</span><div className="trend-track"><div className="trend-fill pos" style={{ width: `${trendData.total ? (trendData.positive / trendData.total) * 100 : 0}%` }} /></div></div>
+                <div className="trend-row"><span>Neutral</span><div className="trend-track"><div className="trend-fill neu" style={{ width: `${trendData.total ? (trendData.neutral / trendData.total) * 100 : 0}%` }} /></div></div>
+                <div className="trend-row"><span>Negative</span><div className="trend-track"><div className="trend-fill neg" style={{ width: `${trendData.total ? (trendData.negative / trendData.total) * 100 : 0}%` }} /></div></div>
+              </div>
             </motion.div>
           </motion.div>
         </div>

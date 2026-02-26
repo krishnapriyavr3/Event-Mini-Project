@@ -171,6 +171,43 @@ body.dark .recommendation-card {
   font-weight: 500;
 }
 
+.venue-meta-text {
+  margin-top: 16px;
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+.confidence-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid;
+}
+
+.confidence-badge.high {
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+.confidence-badge.medium {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.confidence-badge.low,
+.confidence-badge.unknown {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
 /* Amenities */
 .amenities-card h3 {
   margin-bottom: 20px;
