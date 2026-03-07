@@ -41,6 +41,14 @@ DB_PASSWORD=your_password
 DB_NAME=college_event_db
 PORT=5000
 
+# SMTP for real invitation emails
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-password
+EMAIL_FROM=your-email@gmail.com
+
 ## Run Backend
 
 cd backend
@@ -114,6 +122,9 @@ Output:
 Base URL: `http://localhost:5000/api`
 
 ### Health / Stats
+
+#### GET `/health`
+Backend liveness/database connectivity check.
 
 #### GET `/stats`
 Returns dashboard stats.
@@ -238,7 +249,18 @@ Response (example):
 Fetch student participants.
 
 #### POST `/participants/invite`
-Simulate invitation sending.
+Send invitation email through SMTP.
+
+Request body (example):
+{
+  "student_id": "U001",
+  "event_id": "E003",
+  "test_email": "krishnapriyavr3@gmail.com"
+}
+
+Notes:
+- `test_email` is optional and overrides student email for delivery verification.
+- If SMTP is not configured, the API returns a descriptive error.
 
 ---
 
@@ -252,6 +274,9 @@ Get assignments for an event.
 
 #### POST `/volunteers/assign`
 Assign volunteer to an event.
+
+#### POST `/volunteers/auto-assign/:eventId`
+Auto-assign volunteers using event context + volunteer skills.
 
 ---
 

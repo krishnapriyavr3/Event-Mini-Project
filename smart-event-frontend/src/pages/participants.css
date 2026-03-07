@@ -32,6 +32,41 @@ body.dark {
   max-width: 1000px;
 }
 
+.invite-config-row {
+  margin: 0 0 16px;
+  display: grid;
+  grid-template-columns: 160px minmax(220px, 420px);
+  gap: 10px;
+  align-items: center;
+}
+
+.invite-config-row label {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.invite-config-row input {
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 9px 10px;
+  background: var(--bg-input);
+  color: var(--text-main);
+}
+
+.invite-config-row select {
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 9px 10px;
+  background: var(--bg-input);
+  color: var(--text-main);
+}
+
+.invite-status-msg {
+  font-size: 0.86rem;
+  color: #0ea5e9;
+  grid-column: 1 / -1;
+}
+
 /* --- Header & Search Box --- */
 .participants-header {
   display: flex;

@@ -3,11 +3,15 @@ import { motion } from "framer-motion";
 import { Package, Headphones, Monitor, Cable, Lightbulb, Wifi } from "lucide-react";
 import { apiService } from "../apiService";
 import { useToast } from "../context/ToastContext";
+import { useStudentSession } from "../context/StudentSessionContext";
 import "./resources.css";
 
 export default function Resources() {
   const { showToast } = useToast();
+  const { session } = useStudentSession();
   const [dbResources, setDbResources] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [selectedEventId, setSelectedEventId] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -24,8 +28,26 @@ export default function Resources() {
     setLoading(true);
     setError("");
     try {
-      const data = await apiService.getResources();
-      setDbResources(data || []);
+      const [resourceData, eventData] = await Promise.all([
+        apiService.getResources(),
+        apiService.getDiscoverEvents({ mode: "all", limit: 50 }),
+      ]);
+
+      setDbResources(Array.isArray(resourceData?.resources) ? resourceData.resources : []);
+
+      const list = Array.isArray(eventData?.events) ? eventData.events : [];
+      const activeEvents = list.filter((event) => String(event.timeline || '').toLowerCase() !== 'completed');
+      const preferredEvents = activeEvents.length ? activeEvents : list;
+
+      setEvents(preferredEvents);
+      const hasSelected = preferredEvents.some((event) => String(event.event_id) === String(selectedEventId));
+      if ((!selectedEventId || !hasSelected) && preferredEvents.length) {
+        setSelectedEventId(preferredEvents[0].event_id);
+      }
+
+      if (Number(resourceData?.autoReleasedCount || 0) > 0) {
+        showToast(`Auto-adjusted ${resourceData.autoReleasedCount} resource requests from completed events.`, "success");
+      }
     } catch (error) {
       console.error("Error loading resources:", error);
       setError("Could not load resources right now.");
@@ -40,12 +62,21 @@ export default function Resources() {
   }, []);
 
   const handleRequest = async (resourceId) => {
+    if (!selectedEventId) {
+      showToast("Select an event before requesting resources", "error");
+      return;
+    }
+
     try {
-      await apiService.requestResource(resourceId);
+      await apiService.requestResource(resourceId, {
+        event_id: selectedEventId,
+        user_id: session?.user_id || null,
+        quantity: 1,
+      });
       await loadResources();
       showToast("Resource requested successfully", "success");
     } catch (error) {
-      showToast("Request failed. Please try again.", "error");
+      showToast(error?.message || "Request failed. Please try again.", "error");
     }
   };
 
@@ -99,6 +130,20 @@ export default function Resources() {
         <div className="header-icon"><Package size={40} /></div>
         <h1>Available Resources</h1>
         <p>Live inventory from the campus equipment center</p>
+        <div className="resource-event-selector">
+          <label htmlFor="resource-event-id">Allocate to Event</label>
+          <select
+            id="resource-event-id"
+            value={selectedEventId}
+            onChange={(e) => setSelectedEventId(e.target.value)}
+          >
+            {events.map((event) => (
+              <option key={event.event_id} value={event.event_id}>
+                {event.event_name} ({event.event_id})
+              </option>
+            ))}
+          </select>
+        </div>
       </motion.div>
 
       <div className="resources-grid">

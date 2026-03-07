@@ -14,6 +14,7 @@ import {
   Target,
   Activity,
   PlayCircle,
+  Award,
 } from "lucide-react";
 import { apiService } from "../apiService";
 import "./home.css";
@@ -72,6 +73,12 @@ export default function Home() {
 
   const [insight, setInsight] = useState(insights[0]);
   const [modelHealth, setModelHealth] = useState({ totalEvents: 0, totalFeedback: 0, status: "loading" });
+  const [modelMetrics, setModelMetrics] = useState({
+    algorithm: "loading",
+    sampleCount: 0,
+    holdoutSize: 0,
+    metrics: { mae: 0, rmse: 0, mape: 0, r2: 0 },
+  });
 
   useEffect(() => {
     let i = 0;
@@ -92,7 +99,22 @@ export default function Home() {
       }
     };
 
+    const loadModelMetrics = async () => {
+      try {
+        const data = await apiService.getModelMetrics();
+        setModelMetrics(data);
+      } catch (error) {
+        setModelMetrics({
+          algorithm: "offline",
+          sampleCount: 0,
+          holdoutSize: 0,
+          metrics: { mae: 0, rmse: 0, mape: 0, r2: 0 },
+        });
+      }
+    };
+
     loadModelHealth();
+    loadModelMetrics();
   }, []);
 
   /* ================= CARD 3D EFFECT ================= */
@@ -293,6 +315,16 @@ export default function Home() {
           <span>Model Health</span>
           <p className="mini-meta">Events: {modelHealth.totalEvents} • Feedback: {modelHealth.totalFeedback}</p>
         </motion.div>
+
+        <motion.div className="dash-card model-metrics" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
+          <motion.div className="card-icon" animate={{ y: [0, -4, 0] }} transition={{ duration: 3.7, repeat: Infinity, ease: "easeInOut", delay: 1.3 }}>
+            <TrendingUp size={32} />
+          </motion.div>
+          <h2>{String(modelMetrics.algorithm || "-").replace(/-/g, " ")}</h2>
+          <span>Model Metrics</span>
+          <p className="mini-meta">MAE: {modelMetrics.metrics?.mae ?? 0} • RMSE: {modelMetrics.metrics?.rmse ?? 0}</p>
+          <p className="mini-meta">R2: {modelMetrics.metrics?.r2 ?? 0} • Samples: {modelMetrics.sampleCount || 0}</p>
+        </motion.div>
       </section>
 
       <section className="features">
@@ -350,6 +382,22 @@ export default function Home() {
           </motion.div>
           <h3>Past Participants</h3>
           <p>Track returning attendees.</p>
+        </Link>
+
+        <Link to="/student-events" className="card">
+          <motion.div className="feature-icon" animate={{ y: [0, -5, 0] }} transition={{ duration: 3.7, repeat: Infinity, ease: "easeInOut", delay: 1.3 }} whileHover={{ scale: 1.2, filter: "drop-shadow(0 0 20px rgba(14,165,233,0.9))" }}>
+            <Calendar size={40} />
+          </motion.div>
+          <h3>Student Explorer</h3>
+          <p>Browse live and upcoming events instantly.</p>
+        </Link>
+
+        <Link to="/certificates" className="card">
+          <motion.div className="feature-icon" animate={{ y: [0, -6, 0] }} transition={{ duration: 4.1, repeat: Infinity, ease: "easeInOut", delay: 1.35 }} whileHover={{ scale: 1.2, filter: "drop-shadow(0 0 20px rgba(14,165,233,0.9))" }}>
+            <Award size={40} />
+          </motion.div>
+          <h3>Certificates</h3>
+          <p>Auto-generate and email participation certificates.</p>
         </Link>
 
         <Link to="/demo-checklist" className="card">

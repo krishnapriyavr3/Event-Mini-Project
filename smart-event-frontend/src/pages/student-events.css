@@ -1,0 +1,268 @@
+.student-events-page {
+  min-height: 100vh;
+  padding: 32px 16px 64px;
+}
+
+.student-events-shell {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.student-login-card {
+  border: 1px solid rgba(14, 165, 233, 0.28);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 16px;
+  background: rgba(14, 165, 233, 0.08);
+}
+
+.student-login-card h2 {
+  margin: 0;
+}
+
+.student-login-form {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
+.student-login-form input {
+  border: 1px solid rgba(14, 165, 233, 0.25);
+  border-radius: 10px;
+  padding: 9px 10px;
+  background: transparent;
+  color: inherit;
+}
+
+.student-login-form button {
+  border: none;
+  border-radius: 10px;
+  padding: 9px 14px;
+  background: #0284c7;
+  color: #fff;
+  cursor: pointer;
+}
+
+.session-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(14, 165, 233, 0.25);
+  border-radius: 12px;
+  padding: 8px 12px;
+  margin-bottom: 14px;
+}
+
+.session-banner p {
+  margin: 0;
+}
+
+.session-banner button {
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: transparent;
+  color: inherit;
+  border-radius: 999px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.student-events-header {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 20px;
+}
+
+.student-events-header h1 {
+  margin: 0;
+}
+
+.student-events-header p {
+  margin: 8px 0 0;
+  opacity: 0.8;
+}
+
+.student-events-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid rgba(14, 165, 233, 0.25);
+  border-radius: 10px;
+  min-width: 280px;
+}
+
+.student-events-search-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reco-controls {
+  display: grid;
+  grid-template-columns: 120px minmax(180px, 1fr);
+  gap: 8px;
+}
+
+.reco-controls select,
+.reco-controls input {
+  border: 1px solid rgba(14, 165, 233, 0.25);
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: transparent;
+  color: inherit;
+}
+
+.student-events-search input {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  color: inherit;
+}
+
+.student-events-mode-switch {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.student-events-mode-switch button {
+  border: 1px solid rgba(14, 165, 233, 0.25);
+  background: transparent;
+  color: inherit;
+  border-radius: 999px;
+  padding: 8px 14px;
+  cursor: pointer;
+  text-transform: capitalize;
+}
+
+.student-events-mode-switch button.active {
+  background: rgba(14, 165, 233, 0.15);
+  border-color: rgba(14, 165, 233, 0.55);
+}
+
+.student-events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+
+.event-tile {
+  border: 1px solid rgba(14, 165, 233, 0.2);
+  border-radius: 14px;
+  padding: 14px;
+  backdrop-filter: blur(6px);
+  text-decoration: none;
+  color: inherit;
+}
+
+.tile-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+
+.badge.live {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.badge.upcoming {
+  background: rgba(14, 165, 233, 0.15);
+  border-color: rgba(14, 165, 233, 0.4);
+}
+
+.badge.completed {
+  background: rgba(148, 163, 184, 0.2);
+  border-color: rgba(148, 163, 184, 0.4);
+}
+
+.event-type {
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.event-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.event-desc {
+  margin: 10px 0 0;
+  font-size: 14px;
+  opacity: 0.82;
+}
+
+.crowd-meta {
+  justify-content: space-between;
+}
+
+.crowd {
+  font-size: 11px;
+  border-radius: 999px;
+  padding: 3px 9px;
+  border: 1px solid transparent;
+}
+
+.crowd-low {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.45);
+}
+
+.crowd-medium {
+  background: rgba(234, 179, 8, 0.15);
+  border-color: rgba(234, 179, 8, 0.45);
+}
+
+.crowd-high {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.45);
+}
+
+.recommended-block {
+  margin-top: 24px;
+}
+
+.recommended-grid .event-tile.recommended {
+  border-style: dashed;
+}
+
+.state-msg {
+  opacity: 0.85;
+}
+
+.state-msg.error {
+  color: #ef4444;
+}
+
+@media (max-width: 700px) {
+  .student-events-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .student-events-search {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .reco-controls {
+    grid-template-columns: 1fr;
+  }
+}

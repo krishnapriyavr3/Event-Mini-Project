@@ -10,6 +10,9 @@ This app supports conversational event creation, attendance prediction, venue re
 - AI attendance prediction using event context
 - AI venue recommendation using event type + description
 - Feedback sentiment analysis with score and label
+- Student Event Explorer with live/upcoming filters
+- Recommended-for-you events based on department + interest
+- Detailed student event page with AI crowd estimate and similar events
 - Responsive glassmorphic UI with animated particle backgrounds
 - Dark mode support
 
@@ -23,6 +26,8 @@ This app supports conversational event creation, attendance prediction, venue re
 - Volunteers
 - Feedback
 - Participants
+- Student Events Explorer
+- Student Event Details
 
 ## 🛠 Tech Stack
 
@@ -81,6 +86,9 @@ Main integrated endpoints:
 - GET /feedback/trends/:eventId
 - GET /model-health
 - GET /participants
+- GET /events/discover?mode=&limit=
+- GET /events/recommended?department=&interest=&limit=
+- GET /events/:eventId/details
 - GET /volunteers
 - GET /resources
 - POST /resources/request/:id
@@ -95,6 +103,12 @@ Purpose of important APIs:
 	- Legacy compatibility endpoint for attendance-only usage
 - POST /feedback
 	- Saves feedback and returns sentiment analysis (label + score + cue words)
+- GET /events/discover
+	- Student-facing event feed with timeline + AI attendance/crowd insight
+- GET /events/recommended
+	- Student recommendation feed based on department and interests
+- GET /events/:eventId/details
+	- Event detail payload with AI venue/crowd suggestion + related events
 
 ## 🧠 AI Modules in Use
 
@@ -133,9 +147,8 @@ Prediction-time inputs:
 
 Feedback sentiment model uses:
 
-- Feedback comment text tokens
-- Positive/negative keyword lexicon
-- Negation handling (for example: "not good")
+- `sentiment` NLP scoring engine (with fallback lexicon)
+- Feedback comment tokens and weighted polarity
 
 ## 📜 Available Scripts
 

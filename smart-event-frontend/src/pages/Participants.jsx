@@ -7,31 +7,56 @@ import "./participants.css";
 export default function Participants() {
   const { event } = useContext(EventContext);
   const [participants, setParticipants] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [selectedEventId, setSelectedEventId] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [testEmail, setTestEmail] = useState("krishnapriyavr3@gmail.com");
+  const [inviteStatus, setInviteStatus] = useState("");
 
   useEffect(() => {
     const loadParticipants = async () => {
       try {
-        const data = await apiService.getParticipants();
+        const [data, eventData] = await Promise.all([
+          apiService.getParticipants(),
+          apiService.getDiscoverEvents({ mode: "all", limit: 50 }),
+        ]);
         setParticipants(data);
+
+        const eventList = Array.isArray(eventData?.events) ? eventData.events : [];
+        setEvents(eventList);
+
+        if (event?.event_id) {
+          setSelectedEventId(event.event_id);
+        } else if (eventList.length) {
+          setSelectedEventId(eventList[0].event_id);
+        }
       } catch (err) {
         console.error("Error loading participants:", err);
       }
     };
     loadParticipants();
-  }, []);
+  }, [event]);
 
   const handleInvite = async (studentId) => {
+    setInviteStatus("");
+
+    if (!selectedEventId) {
+      setInviteStatus("Select an active event before sending invites.");
+      return;
+    }
+
     try {
-      const response = await fetch('http://localhost:5000/api/participants/invite', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ student_id: studentId, event_id: event?.event_id })
+      const result = await apiService.inviteParticipant({
+        student_id: studentId,
+        event_id: selectedEventId,
+        test_email: testEmail,
       });
-      const result = await response.json();
-      if (result.success) alert(`Invitation sent to ${studentId}!`);
+
+      if (result.success) {
+        setInviteStatus(`Email sent to ${testEmail} for student ${studentId}.`);
+      }
     } catch (err) {
-      alert("Failed to send invitation.");
+      setInviteStatus("Failed to send invitation email. Configure SMTP in backend .env.");
     }
   };
 
@@ -56,6 +81,31 @@ export default function Participants() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+        </div>
+
+        <div className="invite-config-row">
+          <label htmlFor="invite-event-id">Invite For Event</label>
+          <select
+            id="invite-event-id"
+            value={selectedEventId}
+            onChange={(e) => setSelectedEventId(e.target.value)}
+          >
+            {events.map((item) => (
+              <option key={item.event_id} value={item.event_id}>
+                {item.event_name} ({item.event_id})
+              </option>
+            ))}
+          </select>
+
+          <label htmlFor="invite-test-email">Invite Test Email</label>
+          <input
+            id="invite-test-email"
+            type="email"
+            value={testEmail}
+            onChange={(e) => setTestEmail(e.target.value)}
+            placeholder="Enter email to verify invite delivery"
+          />
+          {inviteStatus ? <span className="invite-status-msg">{inviteStatus}</span> : null}
         </div>
 
         <div className="table-card">

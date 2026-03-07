@@ -97,6 +97,16 @@ body.dark .dash-card {
   text-transform: capitalize;
 }
 
+.dash-card.model-metrics h2 {
+  text-transform: capitalize;
+  font-size: 1.1rem;
+  line-height: 1.3;
+}
+
+.dash-card.model-metrics .mini-meta {
+  font-size: 11px;
+}
+
 .mini-meta {
   margin-top: 8px;
   font-size: 12px;

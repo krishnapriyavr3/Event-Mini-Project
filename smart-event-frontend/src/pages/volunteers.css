@@ -224,6 +224,26 @@ body.dark .assignments-section {
   gap: 16px;
 }
 
+.auto-assign-row {
+  margin-bottom: 14px;
+}
+
+.auto-assign-btn {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(14, 165, 233, 0.45);
+  background: rgba(14, 165, 233, 0.14);
+  color: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.auto-assign-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .input-group {
   display: flex;
   flex-direction: column;

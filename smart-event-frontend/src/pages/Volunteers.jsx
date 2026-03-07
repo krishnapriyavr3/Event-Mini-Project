@@ -16,6 +16,7 @@ export default function Volunteers() {
   
   const [selectedVol, setSelectedVol] = useState("");
   const [task, setTask] = useState("");
+  const [autoAssigning, setAutoAssigning] = useState(false);
 
   const iconMap = {
     "Management": Users,
@@ -71,6 +72,31 @@ export default function Volunteers() {
     } catch (err) {
       console.error("Assignment error:", err);
       showToast("Assignment failed. Please try again.", "error");
+    }
+  };
+
+  const handleAutoAssign = async () => {
+    if (!event?.event_id) {
+      showToast("Select an active event before auto-assign", "error");
+      return;
+    }
+
+    setAutoAssigning(true);
+    try {
+      const result = await apiService.autoAssignVolunteers(event.event_id);
+      const updated = await apiService.getAssignments(event.event_id);
+      setAssignments(updated);
+
+      if (Number(result.createdCount || 0) > 0) {
+        showToast(`Auto-assigned ${result.createdCount} volunteers`, "success");
+      } else {
+        showToast("No new volunteer assignments were created", "error");
+      }
+    } catch (err) {
+      console.error("Auto assignment error:", err);
+      showToast("Auto assignment failed. Please try again.", "error");
+    } finally {
+      setAutoAssigning(false);
     }
   };
 
@@ -144,6 +170,16 @@ export default function Volunteers() {
           <div className="section-header">
             <UserPlus size={24} color="#0ea5e9" />
             <h3>Assign New Task</h3>
+          </div>
+          <div className="auto-assign-row">
+            <button
+              type="button"
+              className="auto-assign-btn"
+              onClick={handleAutoAssign}
+              disabled={autoAssigning || !event?.event_id}
+            >
+              {autoAssigning ? "Auto assigning..." : "Auto Assign by Event Type"}
+            </button>
           </div>
           <form onSubmit={handleAssign} className="assignment-form">
             <div className="input-group">

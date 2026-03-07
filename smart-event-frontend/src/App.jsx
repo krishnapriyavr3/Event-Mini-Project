@@ -10,6 +10,9 @@ import Volunteers from "./pages/Volunteers";
 import Feedback from "./pages/Feedback";
 import Participants from "./pages/Participants";
 import DemoChecklist from "./pages/DemoChecklist";
+import StudentEvents from "./pages/StudentEvents";
+import StudentEventDetails from "./pages/StudentEventDetails";
+import Certificates from "./pages/Certificates";
 
 export default function App() {
   const [dark, setDark] = useState(false);
@@ -33,6 +36,9 @@ export default function App() {
         <Route path="/volunteers" element={<Volunteers />} />
         <Route path="/feedback" element={<Feedback />} />
         <Route path="/participants" element={<Participants />} />
+        <Route path="/student-events" element={<StudentEvents />} />
+        <Route path="/student-events/:eventId" element={<StudentEventDetails />} />
+        <Route path="/certificates" element={<Certificates />} />
         <Route path="/demo-checklist" element={<DemoChecklist />} />
       </Routes>
     </>
