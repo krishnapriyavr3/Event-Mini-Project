@@ -89,6 +89,18 @@ body:not(.dark) .resource-card {
   margin: 10px 0;
 }
 
+.resource-requested-count {
+  margin: 8px 0 14px;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.resource-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
 .resource-button {
   width: 100%;
   padding: 10px;
@@ -103,4 +115,8 @@ body:not(.dark) .resource-card {
 .resource-button:disabled {
   background: #94a3b8;
   cursor: not-allowed;
+}
+
+.resource-button.return {
+  background: #0f766e;
 }

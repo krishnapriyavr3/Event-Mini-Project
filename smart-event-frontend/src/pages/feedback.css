@@ -57,6 +57,31 @@
   font-size: 0.95rem;
 }
 
+.feedback-auth-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid rgba(14, 165, 233, 0.35);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgba(14, 165, 233, 0.12);
+}
+
+.feedback-auth-banner p {
+  margin: 0;
+}
+
+.feedback-auth-banner a {
+  color: #fff;
+  text-decoration: none;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
 /* The Compact Grid Layout */
 .feedback-main-grid-compact {
   display: grid;
@@ -323,7 +348,6 @@ body.dark {
 }
 
 .feedback-header-compact h1 {
-  /* This keeps the gradient but ensures it works on white backgrounds */
   background: linear-gradient(135deg, #0ea5e9, #a855f7);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -346,6 +370,11 @@ body.dark .star-icon {
 .star-icon.active {
   color: #0ea5e9;
 }
+
+/* Selected/Active star color in dark mode */
+body.dark .star-icon.active {
+  color: #ffffff;
+}
 /* Responsive adjustments */
 @media (max-width: 900px) {
   .feedback-page {
@@ -355,5 +384,10 @@ body.dark .star-icon {
   }
   .feedback-main-grid-compact {
     grid-template-columns: 1fr;
+  }
+
+  .feedback-auth-banner {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

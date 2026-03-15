@@ -10,7 +10,7 @@ export default function Participants() {
   const [events, setEvents] = useState([]);
   const [selectedEventId, setSelectedEventId] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [testEmail, setTestEmail] = useState("krishnapriyavr3@gmail.com");
+  const [testEmail, setTestEmail] = useState("");
   const [inviteStatus, setInviteStatus] = useState("");
 
   useEffect(() => {

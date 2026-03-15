@@ -46,6 +46,14 @@ const QUESTIONS = [
   },
 ];
 
+const getTodayLocalDateText = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 export default function CreateEvent() {
   const { setEvent } = useContext(EventContext);
   const [formData, setFormData] = useState({
@@ -180,6 +188,11 @@ export default function CreateEvent() {
       const isValidDate = /^\d{4}-\d{2}-\d{2}$/.test(value);
       if (!isValidDate) {
         return { valid: false, error: "Please use date format YYYY-MM-DD." };
+      }
+
+      const todayText = getTodayLocalDateText();
+      if (value < todayText) {
+        return { valid: false, error: "Event date cannot be before today." };
       }
     }
 

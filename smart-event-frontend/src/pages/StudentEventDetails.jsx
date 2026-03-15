@@ -46,8 +46,7 @@ const buildGoogleMapsUrl = (event) => {
 
 export default function StudentEventDetails() {
   const { eventId } = useParams();
-  const { session, loading: sessionLoading, error: sessionError, login, logout } = useStudentSession();
-  const [loginId, setLoginId] = useState("");
+  const { session, logout } = useStudentSession();
 
   const studentId = session?.user_id || "";
 
@@ -61,13 +60,6 @@ export default function StudentEventDetails() {
   const [actionMessage, setActionMessage] = useState("");
   const [question, setQuestion] = useState("");
   const [qaAnswer, setQaAnswer] = useState("");
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    if (!loginId.trim()) return;
-    await login(loginId.trim());
-    setLoginId("");
-  };
 
   const loadAll = async () => {
     if (!studentId) {
@@ -173,18 +165,11 @@ export default function StudentEventDetails() {
       <div className="student-detail-page">
         <div className="student-detail-shell">
           <section className="student-login-card">
-            <h2>Student Sign In</h2>
-            <p>Login with Student ID to view detailed event actions and your registration status.</p>
-            <form className="student-login-form" onSubmit={handleLogin}>
-              <input
-                type="text"
-                placeholder="Enter Student ID (example: U001)"
-                value={loginId}
-                onChange={(e) => setLoginId(e.target.value)}
-              />
-              <button type="submit" disabled={sessionLoading}>Continue</button>
-            </form>
-            {sessionError ? <p className="small-meta">{sessionError}</p> : null}
+            <h2>Login Required</h2>
+            <p>Use student auth to continue to event details.</p>
+            <p>
+              <Link to="/student-auth">Login or Register</Link>
+            </p>
           </section>
         </div>
       </div>
@@ -236,6 +221,9 @@ export default function StudentEventDetails() {
               <div className="action-row">
                 <button type="button" onClick={handleRegister}>One-click Register</button>
                 <button type="button" onClick={handleCheckIn} className="secondary">Check In</button>
+              </div>
+              <div className="calendar-row">
+                <Link to={`/student-events/${event.event_id}/feedback`}>Give Feedback</Link>
               </div>
               <div className="calendar-row">
                 <a href={buildGoogleCalendarUrl(event)} target="_blank" rel="noreferrer">Add to Google Calendar</a>

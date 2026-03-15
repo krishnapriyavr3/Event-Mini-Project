@@ -4,14 +4,18 @@ import { CheckCircle2, PlayCircle, TerminalSquare } from "lucide-react";
 import "./demo-checklist.css";
 
 const steps = [
-  "Run backend: npm run start:clean",
+  "Run backend: npm run start:clean (or npm run seed:demo for demo data)",
   "Run frontend: npm run dev",
-  "Open /create and create one event",
-  "Open /attendance and run AI prediction",
-  "Open /venue and verify recommended venue",
-  "Open /feedback and submit a comment",
-  "Open /volunteers and assign one volunteer",
-  "Open /resources and request one resource",
+  "Open /create and fill in event details → this sets the active event",
+  "Open /attendance and click Run AI Prediction",
+  "Open /venue and verify the AI-recommended venue",
+  "Open /student-auth, register a new student, then log in",
+  "Open /student-events → browse events → open an event → click Give Feedback",
+  "Submit a star rating and a comment → verify sentiment analysis result",
+  "Open /volunteers and click Auto-Assign or assign manually",
+  "Open /resources and submit a resource request",
+  "Open /participants — search the directory and send an email invite",
+  "Open /certificates, select the event, and generate a certificate",
 ];
 
 export default function DemoChecklist() {

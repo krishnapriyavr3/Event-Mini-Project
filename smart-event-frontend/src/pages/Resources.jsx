@@ -14,6 +14,7 @@ export default function Resources() {
   const [selectedEventId, setSelectedEventId] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [allocatedByResource, setAllocatedByResource] = useState({});
 
   const iconMap = {
     "Projectors": Monitor,
@@ -61,9 +62,32 @@ export default function Resources() {
     loadResources();
   }, []);
 
-  const handleRequest = async (resourceId) => {
+  useEffect(() => {
+    const loadAllocations = async () => {
+      if (!selectedEventId) {
+        setAllocatedByResource({});
+        return;
+      }
+
+      try {
+        const data = await apiService.getResourceAllocations(selectedEventId);
+        setAllocatedByResource(data?.allocations || {});
+      } catch (error) {
+        setAllocatedByResource({});
+      }
+    };
+
+    loadAllocations();
+  }, [selectedEventId]);
+
+  const handleRequest = async (resourceId, availableCount) => {
     if (!selectedEventId) {
       showToast("Select an event before requesting resources", "error");
+      return;
+    }
+
+    if (Number(availableCount || 0) <= 0) {
+      showToast("Out of stock", "error");
       return;
     }
 
@@ -74,9 +98,38 @@ export default function Resources() {
         quantity: 1,
       });
       await loadResources();
+      const allocationData = await apiService.getResourceAllocations(selectedEventId);
+      setAllocatedByResource(allocationData?.allocations || {});
       showToast("Resource requested successfully", "success");
     } catch (error) {
       showToast(error?.message || "Request failed. Please try again.", "error");
+    }
+  };
+
+  const handleReturn = async (resourceId) => {
+    if (!selectedEventId) {
+      showToast("Select an event before returning resources", "error");
+      return;
+    }
+
+    const allocatedCount = Number(allocatedByResource[String(resourceId)] || 0);
+    if (allocatedCount <= 0) {
+      showToast("No requested resources to bring back for this event", "error");
+      return;
+    }
+
+    try {
+      await apiService.returnResource(resourceId, {
+        event_id: selectedEventId,
+        user_id: session?.user_id || null,
+        quantity: 1,
+      });
+      await loadResources();
+      const allocationData = await apiService.getResourceAllocations(selectedEventId);
+      setAllocatedByResource(allocationData?.allocations || {});
+      showToast("Returned 1 resource to inventory", "success");
+    } catch (error) {
+      showToast(error?.message || "Return failed. Please try again.", "error");
     }
   };
 
@@ -167,13 +220,25 @@ export default function Resources() {
                 <div className="resource-count">
                   {resource.available_count} / {resource.total_count}
                 </div>
-                <button
-                  className="resource-button"
-                  onClick={() => handleRequest(resource.resource_id)}
-                  disabled={resource.available_count === 0}
-                >
-                  {resource.available_count > 0 ? "Request" : "Out of Stock"}
-                </button>
+                <div className="resource-requested-count">
+                  Requested for selected event: {Number(allocatedByResource[String(resource.resource_id)] || 0)}
+                </div>
+                <div className="resource-actions">
+                  <button
+                    className="resource-button"
+                    onClick={() => handleRequest(resource.resource_id, resource.available_count)}
+                    disabled={resource.available_count === 0}
+                  >
+                    {resource.available_count > 0 ? "Request 1" : "Out of Stock"}
+                  </button>
+                  <button
+                    className="resource-button return"
+                    onClick={() => handleReturn(resource.resource_id)}
+                    disabled={Number(allocatedByResource[String(resource.resource_id)] || 0) === 0}
+                  >
+                    Return 1
+                  </button>
+                </div>
               </motion.div>
             );
           })

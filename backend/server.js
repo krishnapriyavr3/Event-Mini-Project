@@ -292,6 +292,15 @@ const toDateText = (value) => {
   return dt.toISOString().slice(0, 10);
 };
 
+const toLocalDateText = (value = new Date()) => {
+  const dt = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(dt.getTime())) return null;
+  const year = dt.getFullYear();
+  const month = String(dt.getMonth() + 1).padStart(2, '0');
+  const day = String(dt.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const getSeatLimitFromEvent = async (event) => {
   const explicit = Number(event?.expected_attendance || 0);
   if (explicit > 0) return explicit;
@@ -518,6 +527,17 @@ app.get('/api/participants', async (req, res) => {
 app.post('/api/events', validateRequiredFields(['name', 'type', 'date']), async (req, res) => {
   const { name, type, date, location, description, budget } = req.body;
   const event_id = 'E' + Math.floor(100 + Math.random() * 900);
+
+  const eventDateText = String(date || '').trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(eventDateText)) {
+    return res.status(400).json({ error: 'Date must be in YYYY-MM-DD format' });
+  }
+
+  const todayText = toLocalDateText(new Date());
+  if (todayText && eventDateText < todayText) {
+    return res.status(400).json({ error: 'Event date cannot be in the past' });
+  }
+
   try {
     const sql = `INSERT INTO events (event_id, event_name, type, date, location, description, budget, status) 
                  VALUES (?, ?, ?, ?, ?, ?, ?, 'Planned')`;
@@ -1367,7 +1387,7 @@ app.post('/api/volunteers/auto-assign/:eventId', async (req, res) => {
 });
 
 // --- FEEDBACK & INVITATIONS ---
-app.post('/api/feedback', validateRequiredFields(['event_id', 'rating']), async (req, res) => {
+app.post('/api/feedback', validateRequiredFields(['student_id', 'event_id', 'rating']), async (req, res) => {
   const { student_id, event_id, rating, comments } = req.body;
   
   try {
@@ -1412,7 +1432,7 @@ app.post('/api/feedback', validateRequiredFields(['event_id', 'rating']), async 
 
     if (columns.has('user_id')) {
       insertColumns.push('user_id');
-      insertValues.push(student_id || 'U001');
+      insertValues.push(student_id);
     }
 
     if (columns.has('event_id')) {
@@ -1911,16 +1931,104 @@ app.get('/api/resources', async (req, res) => {
   }
 });
 
-const PORT = Number(process.env.PORT || 5000);
-const server = app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
-
-server.on('error', (error) => {
-  if (error.code === 'EADDRINUSE') {
-    console.error(`❌ Port ${PORT} is already in use. Stop the old process or run on a different PORT.`);
-  } else {
-    console.error('❌ Server startup failed:', error.message);
+app.get('/api/resources/allocations', async (req, res) => {
+  const eventId = String(req.query.event_id || '').trim();
+  if (!eventId) {
+    return res.status(400).json({ error: 'event_id is required' });
   }
-  process.exit(1);
+
+  try {
+    await ensureResourceFeatureTables();
+
+    const [rows] = await db.query(
+      `SELECT resource_id, COALESCE(SUM(quantity), 0) as allocated_count
+       FROM resource_requests
+       WHERE event_id = ? AND returned_at IS NULL
+       GROUP BY resource_id`,
+      [eventId]
+    );
+
+    const allocations = {};
+    for (const row of rows) {
+      allocations[String(row.resource_id)] = Number(row.allocated_count || 0);
+    }
+
+    res.json({
+      event_id: eventId,
+      allocations,
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Could not fetch allocations' });
+  }
+});
+
+app.post('/api/resources/return/:id', async (req, res) => {
+  const { id } = req.params;
+  const eventId = String(req.body?.event_id || '').trim();
+  const userId = String(req.body?.user_id || '').trim() || null;
+  const requestedReturn = Math.max(1, Number(req.body?.quantity || 1));
+
+  if (!eventId) {
+    return res.status(400).json({ error: 'event_id is required for return tracking' });
+  }
+
+  try {
+    await ensureResourceFeatureTables();
+
+    const userFilterSql = userId ? 'AND user_id = ?' : '';
+    const queryArgs = userId ? [id, eventId, userId] : [id, eventId];
+
+    const [requestRows] = await db.query(
+      `SELECT request_id, quantity
+       FROM resource_requests
+       WHERE resource_id = ?
+         AND event_id = ?
+         AND returned_at IS NULL
+         ${userFilterSql}
+       ORDER BY created_at DESC
+       LIMIT 1`,
+      queryArgs
+    );
+
+    if (!requestRows.length) {
+      return res.status(400).json({ error: 'No active allocation found to return for this event/resource' });
+    }
+
+    const request = requestRows[0];
+    const activeQuantity = Math.max(1, Number(request.quantity || 1));
+    const returnQuantity = Math.min(activeQuantity, requestedReturn);
+
+    if (returnQuantity >= activeQuantity) {
+      await db.query(
+        `UPDATE resource_requests
+         SET returned_at = NOW()
+         WHERE request_id = ?`,
+        [request.request_id]
+      );
+    } else {
+      await db.query(
+        `UPDATE resource_requests
+         SET quantity = quantity - ?
+         WHERE request_id = ?`,
+        [returnQuantity, request.request_id]
+      );
+    }
+
+    await db.query(
+      `UPDATE resources
+       SET available_count = LEAST(total_count, available_count + ?)
+       WHERE resource_id = ?`,
+      [returnQuantity, id]
+    );
+
+    res.json({
+      success: true,
+      returnedQuantity: returnQuantity,
+      message: 'Resource returned to inventory',
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Could not return resource' });
+  }
 });
 
 app.post('/api/students/session', validateRequiredFields(['user_id']), async (req, res) => {
@@ -1955,6 +2063,91 @@ app.post('/api/students/session', validateRequiredFields(['user_id']), async (re
   }
 });
 
+app.post('/api/students/register', validateRequiredFields(['user_id', 'name', 'department']), async (req, res) => {
+  try {
+    const rawUserId = String(req.body.user_id || '').trim();
+    const userId = rawUserId.replace(/\s+/g, '').toUpperCase();
+    const name = String(req.body.name || '').trim();
+    const department = String(req.body.department || '').trim();
+    const email = String(req.body.email || '').trim() || null;
+    const password = String(req.body.password || '').trim() || null;
+
+    if (userId.length < 3 || userId.length > 20) {
+      return res.status(400).json({ error: 'Student ID must be between 3 and 20 characters' });
+    }
+
+    if (!/^[A-Z0-9._-]+$/.test(userId)) {
+      return res.status(400).json({ error: 'Student ID can use letters, numbers, dot, underscore, and hyphen only' });
+    }
+
+    const [existingRows] = await db.query(
+      `SELECT user_id FROM users WHERE user_id = ? LIMIT 1`,
+      [userId]
+    );
+    if (existingRows.length) {
+      return res.status(409).json({ error: 'Student ID already exists' });
+    }
+
+    const [columnRows] = await db.query(
+      `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users'`
+    );
+    const columns = new Set(columnRows.map((row) => row.COLUMN_NAME));
+
+    const insertColumns = [];
+    const insertValues = [];
+
+    if (columns.has('user_id')) {
+      insertColumns.push('user_id');
+      insertValues.push(userId);
+    }
+    if (columns.has('name')) {
+      insertColumns.push('name');
+      insertValues.push(name);
+    }
+    if (columns.has('role')) {
+      insertColumns.push('role');
+      insertValues.push('Student');
+    }
+    if (columns.has('department')) {
+      insertColumns.push('department');
+      insertValues.push(department);
+    }
+    if (columns.has('email')) {
+      insertColumns.push('email');
+      insertValues.push(email);
+    }
+    if (columns.has('password')) {
+      insertColumns.push('password');
+      insertValues.push(password);
+    }
+
+    if (!insertColumns.length) {
+      return res.status(500).json({ error: 'Users table schema is invalid' });
+    }
+
+    const placeholders = insertColumns.map(() => '?').join(', ');
+    await db.query(
+      `INSERT INTO users (${insertColumns.join(', ')}) VALUES (${placeholders})`,
+      insertValues
+    );
+
+    res.status(201).json({
+      success: true,
+      session: {
+        user_id: userId,
+        name,
+        department,
+      },
+    });
+  } catch (err) {
+    if (err?.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ error: 'Student ID or email already exists' });
+    }
+    res.status(500).json({ error: 'Could not register student' });
+  }
+});
+
 app.get('/api/students/:studentId/profile', async (req, res) => {
   try {
     const { studentId } = req.params;
@@ -1983,4 +2176,16 @@ app.get('/api/students/:studentId/profile', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: 'Could not fetch student profile' });
   }
+});
+
+const PORT = Number(process.env.PORT || 5000);
+const server = app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
+server.on('error', (error) => {
+  if (error.code === 'EADDRINUSE') {
+    console.error(`❌ Port ${PORT} is already in use. Stop the old process or run on a different PORT.`);
+  } else {
+    console.error('❌ Server startup failed:', error.message);
+  }
+  process.exit(1);
 });

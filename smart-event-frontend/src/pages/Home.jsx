@@ -372,8 +372,8 @@ export default function Home() {
           <motion.div className="feature-icon" animate={{ y: [0, -5, 0] }} transition={{ duration: 3.9, repeat: Infinity, ease: "easeInOut", delay: 1.0 }} whileHover={{ scale: 1.2, filter: "drop-shadow(0 0 20px rgba(14,165,233,0.9))" }}>
             <MessageSquare size={40} />
           </motion.div>
-          <h3>Feedback Analysis</h3>
-          <p>Sentiment-driven insights.</p>
+          <h3>Student Feedback</h3>
+          <p>Open feedback directly and submit after student login.</p>
         </Link>
 
         <Link to="/participants" className="card">
@@ -384,12 +384,12 @@ export default function Home() {
           <p>Track returning attendees.</p>
         </Link>
 
-        <Link to="/student-events" className="card">
+        <Link to="/student-auth" className="card">
           <motion.div className="feature-icon" animate={{ y: [0, -5, 0] }} transition={{ duration: 3.7, repeat: Infinity, ease: "easeInOut", delay: 1.3 }} whileHover={{ scale: 1.2, filter: "drop-shadow(0 0 20px rgba(14,165,233,0.9))" }}>
             <Calendar size={40} />
           </motion.div>
           <h3>Student Explorer</h3>
-          <p>Browse live and upcoming events instantly.</p>
+          <p>Login or register first, then browse live and upcoming events.</p>
         </Link>
 
         <Link to="/certificates" className="card">

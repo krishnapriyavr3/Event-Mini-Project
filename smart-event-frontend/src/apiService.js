@@ -73,6 +73,34 @@ export const apiService = {
     return res.json();
   },
 
+  getResourceAllocations: async (eventId) => {
+    const query = new URLSearchParams({ event_id: String(eventId || "") });
+    const res = await fetch(`${API_URL}/resources/allocations?${query.toString()}`);
+    if (!res.ok) throw new Error("Failed to fetch resource allocations");
+    return res.json();
+  },
+
+  returnResource: async (id, payload) => {
+    const res = await fetch(`${API_URL}/resources/return/${id}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload || {}),
+    });
+
+    if (!res.ok) {
+      let message = "Return failed";
+      try {
+        const body = await res.json();
+        if (body?.error) message = body.error;
+      } catch (e) {
+        // Keep fallback message when response is not JSON.
+      }
+      throw new Error(message);
+    }
+
+    return res.json();
+  },
+
   createStudentSession: async (userId) => {
     const res = await fetch(`${API_URL}/students/session`, {
       method: 'POST',
@@ -80,6 +108,27 @@ export const apiService = {
       body: JSON.stringify({ user_id: userId }),
     });
     if (!res.ok) throw new Error("Could not login student");
+    return res.json();
+  },
+
+  registerStudent: async (payload) => {
+    const res = await fetch(`${API_URL}/students/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload || {}),
+    });
+
+    if (!res.ok) {
+      let message = 'Could not register student';
+      try {
+        const body = await res.json();
+        if (body?.error) message = body.error;
+      } catch (e) {
+        // Keep fallback when non-JSON error response is returned.
+      }
+      throw new Error(message);
+    }
+
     return res.json();
   },
 

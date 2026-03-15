@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { CalendarDays, Search, Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
+import { CalendarDays, Search, Sparkles, UserCircle } from "lucide-react";
 import { apiService } from "../apiService";
 import { useStudentSession } from "../context/StudentSessionContext";
 import "./student-events.css";
@@ -9,8 +10,7 @@ const MODES = ["all", "current", "upcoming"];
 const DEPARTMENTS = ["CSE", "ECE", "EEE", "Mechanical", "Civil", "MBA"];
 
 export default function StudentEvents() {
-  const { session, loading: sessionLoading, error: sessionError, login, logout } = useStudentSession();
-  const [loginId, setLoginId] = useState("");
+  const { session, logout } = useStudentSession();
   const [mode, setMode] = useState("all");
   const [query, setQuery] = useState("");
   const [department, setDepartment] = useState("CSE");
@@ -22,13 +22,6 @@ export default function StudentEvents() {
   const [error, setError] = useState("");
 
   const studentId = session?.user_id || "";
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    if (!loginId.trim()) return;
-    await login(loginId.trim());
-    setLoginId("");
-  };
 
   useEffect(() => {
     if (!studentId) {
@@ -109,26 +102,22 @@ export default function StudentEvents() {
   }, [events, query]);
 
   return (
-    <div className="student-events-page">
+    <motion.div className="student-events-page" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
       <div className="student-events-shell">
         {!session ? (
           <section className="student-login-card">
-            <h2>Student Sign In</h2>
-            <p>Login with your Student ID to get personalized recommendations and registrations.</p>
-            <form onSubmit={handleLogin} className="student-login-form">
-              <input
-                type="text"
-                placeholder="Enter Student ID (example: U001)"
-                value={loginId}
-                onChange={(e) => setLoginId(e.target.value)}
-              />
-              <button type="submit" disabled={sessionLoading}>Continue</button>
-            </form>
-            {sessionError ? <p className="state-msg error">{sessionError}</p> : null}
+            <h2>Student Explorer</h2>
+            <p>Login or register first, then continue to explorer.</p>
+            <p>
+              Please <Link to="/student-auth">Login or Register</Link> to continue.
+            </p>
           </section>
         ) : (
           <div className="session-banner">
-            <p>Logged in as <strong>{session.name || session.user_id}</strong> ({session.department || "Student"})</p>
+            <div className="session-user">
+              <UserCircle size={18} />
+              <p>Logged in as <strong>{session.name || session.user_id}</strong> · {session.department || "Student"}</p>
+            </div>
             <button type="button" onClick={logout}>Logout</button>
           </div>
         )}
@@ -244,6 +233,6 @@ export default function StudentEvents() {
           )}
         </section>
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 import Home from "./pages/Home";
@@ -13,6 +13,7 @@ import DemoChecklist from "./pages/DemoChecklist";
 import StudentEvents from "./pages/StudentEvents";
 import StudentEventDetails from "./pages/StudentEventDetails";
 import Certificates from "./pages/Certificates";
+import StudentAuth from "./pages/StudentAuth";
 
 export default function App() {
   const [dark, setDark] = useState(false);
@@ -38,6 +39,10 @@ export default function App() {
         <Route path="/participants" element={<Participants />} />
         <Route path="/student-events" element={<StudentEvents />} />
         <Route path="/student-events/:eventId" element={<StudentEventDetails />} />
+        <Route path="/student-events/:eventId/feedback" element={<Feedback />} />
+        <Route path="/student-auth" element={<StudentAuth />} />
+        <Route path="/student-login" element={<Navigate to="/student-auth" replace />} />
+        <Route path="/student-register" element={<Navigate to="/student-auth" replace />} />
         <Route path="/certificates" element={<Certificates />} />
         <Route path="/demo-checklist" element={<DemoChecklist />} />
       </Routes>

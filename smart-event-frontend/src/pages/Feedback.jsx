@@ -1,20 +1,30 @@
 import { useEffect, useState, useContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageSquare, BarChart3, TrendingUp, Star, ThumbsUp, MessageCircle, Send, CheckCircle } from "lucide-react";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { apiService } from "../apiService";
 import { EventContext } from "../context/EventContext";
+import { useStudentSession } from "../context/StudentSessionContext";
 import { useToast } from "../context/ToastContext";
 import "./feedback.css";
 
 export default function Feedback() {
+  const { eventId: routeEventId } = useParams();
+  const location = useLocation();
   const { event } = useContext(EventContext);
+  const { session } = useStudentSession();
   const { showToast } = useToast();
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [comments, setComments] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [sentimentResult, setSentimentResult] = useState(null);
+  const [eventName, setEventName] = useState("");
   const [trendData, setTrendData] = useState({ positive: 0, neutral: 0, negative: 0, total: 0, averageRating: 0 });
+
+  const selectedEventId = routeEventId || event?.event_id || "";
+  const canSubmit = Boolean(session?.user_id && selectedEventId);
+  const redirectTarget = `${location.pathname}${location.search || ""}`;
 
   /* ================= PARTICLE NETWORK ================= */
   useEffect(() => {
@@ -57,38 +67,64 @@ export default function Feedback() {
   }, []);
 
   const handleFeedbackSubmit = async (e) => {
-  e.preventDefault();
-  
-  if (!rating || !event?.event_id) {
-    showToast("Please select a rating and active event", "error");
-    return;
-  }
-  
-  try {
-    const response = await apiService.submitFeedback({
-      event_id: event.event_id,
-      student_id: "U001",
-      rating: rating,
-      comments: comments
-    });
-    setSentimentResult(response.sentiment || null);
-    setSubmitted(true);
-    showToast("Feedback submitted successfully", "success");
-    if (event?.event_id) {
-      const latestTrend = await apiService.getFeedbackTrends(event.event_id);
-      setTrendData(latestTrend);
+    e.preventDefault();
+
+    if (!session?.user_id) {
+      showToast("Please login as a student to submit feedback", "error");
+      return;
     }
-  } catch (err) {
-    console.error("Submission failed:", err);
-    showToast("Submission failed. Please try again.", "error");
-  }
-};
+
+    if (!rating || !selectedEventId) {
+      showToast("Please select a rating and event", "error");
+      return;
+    }
+
+    try {
+      const response = await apiService.submitFeedback({
+        event_id: selectedEventId,
+        student_id: session.user_id,
+        rating,
+        comments,
+      });
+      setSentimentResult(response.sentiment || null);
+      setSubmitted(true);
+      showToast("Feedback submitted successfully", "success");
+      const latestTrend = await apiService.getFeedbackTrends(selectedEventId);
+      setTrendData(latestTrend);
+    } catch (err) {
+      console.error("Submission failed:", err);
+      showToast("Submission failed. Please try again.", "error");
+    }
+  };
+
+  useEffect(() => {
+    const loadEventName = async () => {
+      if (!selectedEventId) {
+        setEventName("");
+        return;
+      }
+
+      if (event?.event_id && String(event.event_id) === String(selectedEventId)) {
+        setEventName(event.name || event.event_name || "");
+        return;
+      }
+
+      try {
+        const details = await apiService.getEventDetails(selectedEventId);
+        setEventName(details?.event?.event_name || "");
+      } catch {
+        setEventName("");
+      }
+    };
+
+    loadEventName();
+  }, [event, selectedEventId]);
 
   useEffect(() => {
     const loadTrendData = async () => {
-      if (!event?.event_id) return;
+      if (!selectedEventId) return;
       try {
-        const data = await apiService.getFeedbackTrends(event.event_id);
+        const data = await apiService.getFeedbackTrends(selectedEventId);
         setTrendData(data);
       } catch (error) {
         setTrendData({ positive: 0, neutral: 0, negative: 0, total: 0, averageRating: 0 });
@@ -96,7 +132,7 @@ export default function Feedback() {
     };
 
     loadTrendData();
-  }, [event]);
+  }, [selectedEventId]);
 
   const sentimentScore = sentimentResult?.score ?? 0;
   const sentimentLabel = sentimentResult?.label || "Pending";
@@ -116,13 +152,27 @@ export default function Feedback() {
       <canvas className="particle-network-feedback"></canvas>
 
       <div className="feedback-container-fixed">
+        {!session ? (
+          <div className="feedback-auth-banner">
+            <p>Please login or register to submit event feedback.</p>
+            <Link to={`/student-auth?redirect=${encodeURIComponent(redirectTarget)}`}>Go to Student Auth</Link>
+          </div>
+        ) : null}
+
+        {!selectedEventId ? (
+          <div className="feedback-auth-banner">
+            <p>Select an event from Student Explorer to submit feedback.</p>
+            <Link to="/student-events">Open Student Explorer</Link>
+          </div>
+        ) : null}
+
         {/* HEADER SECTION */}
         <motion.div className="feedback-header-compact" variants={itemVariants} custom={0}>
           <motion.div className="header-icon-small" animate={{ y: [0, -5, 0] }} transition={{ duration: 3, repeat: Infinity }}>
             <MessageSquare size={32} />
           </motion.div>
           <h1>Feedback & Insights</h1>
-          <p>Analyzing: <strong>{event?.name || "Global Data"}</strong></p>
+          <p>Analyzing: <strong>{eventName || selectedEventId || "Global Data"}</strong></p>
         </motion.div>
 
         <div className="feedback-main-grid-compact">
@@ -133,7 +183,7 @@ export default function Feedback() {
                 <motion.form key="form" onSubmit={handleFeedbackSubmit} className="feedback-form-styled" exit={{ opacity: 0, scale: 0.9 }}>
                   <h3>Share Your Experience</h3>
                   
-                  {/* Rating Stars - Updated with CSS classes for theme visibility */}
+                  {/* Rating Stars */}
                   <div className="star-rating-row">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <Star
@@ -152,10 +202,11 @@ export default function Feedback() {
                     placeholder="Add your comments here..."
                     value={comments}
                     onChange={(e) => setComments(e.target.value)}
+                    disabled={!canSubmit}
                     required
                   />
 
-                  <button type="submit" className="submit-action-btn">
+                  <button type="submit" className="submit-action-btn" disabled={!canSubmit}>
                     <Send size={18} /> Submit Feedback
                   </button>
                 </motion.form>
